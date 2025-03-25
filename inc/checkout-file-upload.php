@@ -4,11 +4,12 @@ class CheckoutFileUpload {
 
     function __construct() {
         // Add file upload field to the checkout form
-        add_action('woocommerce_after_checkout_billing_form', array($this, 'custom_checkout_file_upload'),10);
-        
+        //add_action('woocommerce_after_checkout_billing_form', array($this, 'custom_checkout_file_upload'),10);
+        add_action('woocommerce_review_order_before_submit', array($this, 'custom_checkout_file_upload'));
+
         // Enqueue JavaScript
         add_action('wp_enqueue_scripts', array($this, 'enqueue_js'));
-        
+
         // Handle AJAX upload
         add_action('wp_ajax_rwsupload', array($this, 'rws_file_upload'));
         add_action('wp_ajax_nopriv_rwsupload', array($this, 'rws_file_upload'));
@@ -18,14 +19,19 @@ class CheckoutFileUpload {
     }
 
     function custom_checkout_file_upload($checkout) {
+        // Get the currently selected payment method
+$chosen_payment_method = WC()->session->get('chosen_payment_method');
+
+// Only display the field if "Check Payment" is selected
+$display_style = ($chosen_payment_method === 'cheque') ? 'block' : 'none';
         ?>
-        <div class="form-row form-row-wide custom_cheque_file_upload" >
-            <input type="file" id="rws_file" name="rws_file" />
-            <input type="hidden" name="rws_file_field" />
-            <label for="rws_file"><a>Select a cool image</a></label>
-            <div id="rws_filelist"></div>
-        </div>
-        <?php
+<div class="form-row form-row-wide custom_cheque_file_upload" style="display: <?php echo $display_style; ?>;">
+  <input type="file" id="rws_file" name="rws_file" />
+  <input type="hidden" name="rws_file_field" />
+  <label for="rws_file"><a>Select a cool image</a></label>
+  <div id="rws_filelist"></div>
+</div>
+<?php
     }
 
     function enqueue_js() {
@@ -33,17 +39,17 @@ class CheckoutFileUpload {
     }
 
     function rws_file_upload() {
-        $upload_dir = wp_upload_dir();      
+        $upload_dir = wp_upload_dir();
         if (isset($_FILES['rws_file'])) {
             $path = $upload_dir['path'] . '/' . basename($_FILES['rws_file']['name']);
-            
+
             if (move_uploaded_file($_FILES['rws_file']['tmp_name'], $path)) {
                 echo $upload_dir['url'] . '/' . basename($_FILES['rws_file']['name']);
             }
         }
         die;
     }
-    
+
     function rws_save_what_we_added( $order_id ){
 
         if( ! empty( $_POST[ 'rws_file_field' ] ) && ( $order = wc_get_order( $order_id ) ) ) {
@@ -51,7 +57,7 @@ class CheckoutFileUpload {
             $order->save();
         }
 
-    }    
+    }
 
     function rws_order_meta_general( $order ){
 
@@ -66,6 +72,3 @@ class CheckoutFileUpload {
 }
 
 new CheckoutFileUpload();
-
-
-

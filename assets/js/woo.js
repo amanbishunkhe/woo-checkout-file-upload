@@ -6,7 +6,8 @@
                 if( ! this.files.length ){
                     console.log( "empty ")
                 }else{
-                    const file = this.files[0];                    
+                    const file = this.files[0];
+                    console.log( file );
                     $('#rws_filelist').html('<img src="' + URL.createObjectURL(file) + '"> <span>' + file.name + '</span>');
                     const formdata = new FormData();
                     formdata.append( 'rws_file',file );
