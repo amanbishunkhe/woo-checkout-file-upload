@@ -1,3 +1,4 @@
+<?php
 // Display the image upload field when "Check Payment" is selected
 add_action('woocommerce_review_order_before_submit', 'add_image_upload_field_check_payment');
 function add_image_upload_field_check_payment() {
@@ -32,6 +33,7 @@ function enqueue_checkout_image_upload_scripts() {
             #image_upload_status { margin-top: 0.5em; font-size: 0.9em; }
         ');
     }
+    
 }
 
 // Handle the image upload via AJAX
