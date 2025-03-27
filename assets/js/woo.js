@@ -1,58 +1,64 @@
-(function($){
-    fire = {
-        checkout_form_event : function(){
-            $('#rws_file').change(function(){
+(function($) {
+    var fire = {
+        checkout_form_event: function() {
+            // Function to bind the file upload event
+            function bindFileUploadEvent() {
+                // Use a more specific selector and ensure it’s rebindable
+                $('.payment_method_cheque #rws_file').off('change'); // Remove any existing listeners to avoid duplicates
+                $('.payment_method_cheque #rws_file').on('change', function(e) {
+                    console.log('File input changed');
+                    var $this = $(this);
+                    var files = this.files;
 
-                if( ! this.files.length ){
-                    console.log( "empty ")
-                }else{
-                    const file = this.files[0];
-                    console.log( file );
+                    if (!files || !files.length) {
+                        console.log('No files selected');
+                        $('#rws_filelist').html('<p>No file selected.</p>');
+                        return;
+                    }
+
+                    var file = files[0];
+                    console.log('Selected file:', file);
+
+                    // Display the file preview
                     $('#rws_filelist').html('<img src="' + URL.createObjectURL(file) + '"> <span>' + file.name + '</span>');
-                    const formdata = new FormData();
-                    formdata.append( 'rws_file',file );
 
+                    // Prepare FormData for AJAX upload
+                    var formData = new FormData();
+                    formData.append('rws_file', file);
+
+                    // AJAX request to upload the file
                     $.ajax({
                         url: wc_checkout_params.ajax_url + '?action=rwsupload',
                         type: 'POST',
-                        data: formdata,
+                        data: formData,
                         contentType: false,
                         enctype: 'multipart/form-data',
                         processData: false,
-                        success: function ( response ) {
-                           $( 'input[name="rws_file_field"]' ).val( response );
-                           console.log( response ,'success');
+                        success: function(response) {
+                            console.log('AJAX success:', response);
+                            $('input[name="rws_file_field"]').val(response);
+                        },
+                        error: function(xhr, status, error) {
+                            console.log('AJAX error:', status, error);
                         }
                     });
-
-                }
-            });
-        },
-
-        checkout_cheque_payment : function(){
-            function toggleFileUpload(){
-                const upload_file_field = $('#custom_cheque_file_upload');
-                if( $('#payment_method_cheque' ).is(':checked')){
-                    console.log( upload_file_field );
-                    $('#custom_cheque_file_upload').insertAfter('#payment_method_cheque').show();
-                }else{
-                    console.log(' no test');
-                    $('#custom_cheque_file_upload').hide();
-                }
+                });
             }
 
-            // run on page load
-            toggleFileUpload();
+            // Initial binding
+            bindFileUploadEvent();
 
-            // Run when payment method changes
-            $(document).on('change', 'input[name="payment_method"]', function() {
-                toggleFileUpload();
-                console.log( ' run ');
+            // Rebind after WooCommerce AJAX updates
+            $(document.body).on('updated_checkout', function() {
+                console.log('Checkout updated, rebinding file upload event');
+                bindFileUploadEvent();
             });
-        }
-    }
-    $(function(){
-        fire.checkout_form_event();
-        fire.checkout_cheque_payment();
-    })
+        },
+       
+    };
+    // Run on DOM ready
+    $(function() {
+        fire.checkout_form_event();       
+    });
 })(jQuery);
+

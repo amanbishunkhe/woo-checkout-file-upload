@@ -1,11 +1,15 @@
 <?php
+/**
+ * Adds file upload feature in checkout page when payment is done from cheque
+ * 
+ */
 
 class CheckoutFileUpload {
 
     function __construct() {
         // Add file upload field to the checkout form
         //add_action('woocommerce_after_checkout_billing_form', array($this, 'custom_checkout_file_upload'),10);
-        add_action('woocommerce_review_order_before_submit', array($this, 'custom_checkout_file_upload'));
+        add_filter('woocommerce_gateway_description', array($this, 'custom_checkout_file_upload'), 10, 2);
 
         // Enqueue JavaScript
         add_action('wp_enqueue_scripts', array($this, 'enqueue_js'));
@@ -18,20 +22,18 @@ class CheckoutFileUpload {
         add_action( 'woocommerce_admin_order_data_after_order_details', array( $this, 'rws_order_meta_general' ) );
     }
 
-    function custom_checkout_file_upload($checkout) {
-        // Get the currently selected payment method
-$chosen_payment_method = WC()->session->get('chosen_payment_method');
-
-// Only display the field if "Check Payment" is selected
-$display_style = ($chosen_payment_method === 'cheque') ? 'block' : 'none';
-        ?>
-<div class="form-row form-row-wide custom_cheque_file_upload" style="display: <?php echo $display_style; ?>;">
-  <input type="file" id="rws_file" name="rws_file" />
-  <input type="hidden" name="rws_file_field" />
-  <label for="rws_file"><a>Select a cool image</a></label>
-  <div id="rws_filelist"></div>
-</div>
-<?php
+    function custom_checkout_file_upload($description, $payment_id) {
+        if ($payment_id === 'cheque') {
+            // Append file upload field HTML to the description
+            $description .= '<div class="form-row form-row-wide custom_cheque_file_upload" >';
+            $description .= '<input type="file" id="rws_file" name="rws_file" />';
+            $description .= '<input type="hidden" name="rws_file_field" />';
+            $description .= '<label for="rws_file"><a>Select a cool image</a></label>';
+            $description .= '<div id="rws_filelist"></div>';
+            $description .= '</div>';
+            
+        }
+        return $description;
     }
 
     function enqueue_js() {
