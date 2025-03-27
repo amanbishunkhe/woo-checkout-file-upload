@@ -658,4 +658,4 @@ endif;
 
 include_once( get_template_directory().'/inc/checkout-file-upload.php' );
 
-//include_once( get_template_directory().'/inc/helper.php' );
+include_once( get_template_directory().'/inc/categories-image.php' );
